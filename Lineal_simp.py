@@ -13,7 +13,7 @@ from scipy.integrate import solve_ivp as sl
 import control as ctrl
 
 def USV(t,p,p0,A):
-    dotp = A@p + p0 
+    dotp = A@p + p0 + np.array([0,2,0,0,0]) #pertubation added 
     return dotp
     
     
