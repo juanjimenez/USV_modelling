@@ -22,7 +22,7 @@ campoux = vel_agua.campoux
 
 
 #______Modelo del USV__________________________________________________________
-def USV(t,p,p0,mus,Ks,E,campvw,campo):
+def USV(t,p,p0,mus,Ks,C,E,campvw,campo):
     """As a first approach we're going to include everything inside this 
     function
     t := time required by the integrations algorithm
@@ -42,9 +42,9 @@ def USV(t,p,p0,mus,Ks,E,campvw,campo):
     dotp = np.zeros(p.shape)
     mu = mus[0]
     mua = mus[1]
-    k1 = Ks[0]
-    k2 = Ks[1]
-    k3 = Ks[2]
+    kr= Ks[0]
+    k = Ks[1]
+    L = Ks[2]
     wt = campvw(p[0:2],t ,campo)
     R = np.reshape(p[8:12],[2,2])
     ep =p0-p[0:2] #position error
@@ -58,35 +58,43 @@ def USV(t,p,p0,mus,Ks,E,campvw,campo):
     #ev = p[2:4]-p[6:8] #velocity error
     #torque to be applied
     #Tau = k1*st*np.sign(ct)
-    Tau = k1*st/ct
+    Tau = kr*st/ct
     
-    Phat =R.T.dot(p0-p[4:6]) #posiciones a ejes cuerpo
-    Pdothat =R.T.dot(p[6:8]) #velocidades a ejes cuerpo
+    Pc =R.T.dot(p[0:2]) #posiciones a ejes cuerpo 
+    Pcdot=R.T.dot(p[2:4]) #velocidades a ejes cuerpo
+    Pchat =R.T.dot(p[4:6]) #posiciones a ejes cuerpo estimadas
+    Pcdothat =R.T.dot(p[6:8]) #velocidades a ejes cuerpo estimadas
     
-    Pr =np.array([Phat[0],Pdothat[0]]) #estados del estimador reducido 
+    #estados de la planta reducida
+    Pr =np.array([Pc[0],Pcdot[0]])
+    #estados del estimador reducido px y vx
+    Prhat =np.array([Pchat[0],Pcdothat[0]]) 
     
     
-    F = k2[0][0:2].dot(Pr) - k2[0][2]*p[13] #fuera sacada del modelo lineal
+    F = -k[0,0:2].dot(Pchat) - k[0,2]*p[13] #fuera sacada del modelo lineal
     
+    #USV displacement
+    dotp[0:2] = p[2:4] 
+    dotp[2:4] = R.dot(ux*F) - R.dot(mu.dot(R.T.dot(p[2:4])- wt))
+    
+    #USV rotation
     Td = (F + Tau)/2
     Ti = (F - Tau)/2
-    
-    #USV
-    dotp[0:2] = p[2:4]
-    dotp[2:4] = R.dot(ux*(Td+Ti)) - R.dot(mu.dot(R.T.dot(p[2:4]))) #- wt)))
     Sw = E*p[12]
     dotR = Sw.dot(R)
     dotp[8:12] = np.reshape(dotR,[1,4])
     dotp[12] = Td-Ti - mua*p[12] #desprecio cualquier par que pueda hacer la corriente
     
-    #estimator
-    #estimator feedback
-    L =k3*(p[4]-p[0])
-    dotp[4:6] = p[6:8] - np.array([L[0,0],0.])
-    dotp[6:8] = R.dot(ux*(Td+Ti)) - R.dot(mu.dot(R.T.dot(p[6:8])))\
-    - np.array([L[1,0],0.])
-    Pc = R.dot(p0-p[0:2]) #solo hacemos tracking de px
-    p[13] =Pc[0]
+    #USV estimator
+    
+    dotpr = L.dot(C.dot(Pr))
+    dotprhat =L.dot(C.dot(Prhat))
+    
+    dotp[4:6] = R.dot(ux*dotpr[0]) + p[6:8] - R.dot(ux*dotprhat[0])  
+    dotp[6:8] = R.dot(ux*dotpr[1])+R.dot(ux*F) - R.dot(mu.dot(R.T.dot(p[6:8])))\
+    - R.dot(ux*dotprhat[1])
+    Pc = R.dot(p0-p[0:2]) #solo hacemos tracking de px en c cuerpo
+    dotp[13] =Pc[0] 
     
     return(dotp)
     
@@ -110,7 +118,7 @@ p[12] ->> w (angular speed)
 p[13] ->> dev error de posición
 '''
 #thetai = np.arange(0,2*np.pi,np.pi/6) #initial USV heading
-thetai = [np.pi/6]
+thetai = [np.pi]
 pini = np.zeros(14)
 r = 4 #distancia al origen a partir de la cual se prueba el algoritmo
 v = 0.5 #v inicial del usv, (modulo)
@@ -144,24 +152,26 @@ for theta in thetai:
     A = np.array([[0,1],[0,-mu[0,0]]])
     B = np.array([[0],[1]])
     C = np.array([[1,0]])
-    Poles = [-10,-20] #perhaps improve it with LQR¿?
+    Poles = [-30,-20] #perhaps improve it with LQR¿?
     L = ctrl.acker(A.T,C.T,Poles).T
     #y a continuación las del controlador, tambien simplificado (solo para p_x)
     #incluimos acción integral para tratar de controlar las corrientes 
-    Pols = [-1,-2,-3]
+    Pols = [-0.1,-0.2,-1]
     Amp = np.array([[0, 1, 0],[0, -mu[0][0], 0], [-1, 0, 0]])
     Bmp = np.array([[0],[1],[0]])
     K = ctrl.acker(Amp,Bmp,Pols)
-    #la  ganancia del control de rotación está metida a pelo 
+    #la  ganancia del control de rotación está metida a pelo
+    
     Ks = [50.,K,L] #
     
     E = np.array([[0,-1],[1,0]])
-    campo = [3*np.pi/4,0*np.pi/100,1,0.5]
-    tfin = 300. #2000.#tiempo final del experimento
+    #campo = [3*np.pi/4,0*np.pi/100,1,0.5]
+    campo = [np.pi/4,0*np.pi/100,1,0.5]
+    tfin = 200. #2000.#tiempo final del experimento
     
     #_______integrador LSODA (stiff)___________________________________________
-    USV(0,pini,p0,mus,Ks,E,campoux,campo)
-    sol = sl(USV, (0,tfin),pini,method='LSODA',args = (p0,mus,Ks,E,campoux,campo),max_step=0.05)    
+    USV(0,pini,p0,mus,Ks,C,E,campoux,campo)
+    sol = sl(USV, (0,tfin),pini,method='LSODA',args = (p0,mus,Ks,C,E,campoux,campo),max_step=0.05)    
        
     
     #______Resultados (gráficos)_______________________________________________

@@ -37,7 +37,7 @@ K = ctrl.acker(Amp,Bmp,Pols)
 
 #
 Atot = np.block([[A,  -B.dot(K[0,0:2].reshape(1,2)), -B.dot(K[0,2])],\
-                 [L.dot(C), A-B.dot(K[0,2])-L.dot(C), -B.dot(K[0,2])],\
+                 [L.dot(C), A-B.dot(K[0,0:2].reshape(1,2))-L.dot(C), -B.dot(K[0,2])],\
                  [-C, np.zeros(C.shape), np.zeros([C.shape[0],1])]]) 
 
 # State vector
@@ -52,7 +52,7 @@ pini[1] = 0.
 pini[2] = 2.
 pini[3] = 2.
 pini[4] = 0
-p0 = np.array([0,0,0,0,0])
+p0 = np.array([0,0,0,0,3])
 tfin = 300. #2000.#tiempo final del experimento
 
 #_______integrador LSODA (stiff)___________________________________________
