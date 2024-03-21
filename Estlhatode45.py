@@ -121,18 +121,18 @@ for theta in thetai:
     #Costantes del modelo absolutamente arbitrarias
     #matriz de rozamientos en ejes cuerpo. Incluyen todo Inercias, masas ..
     mu = np.array([[10.,0.],[0.,100.]])
-    mua = 100. #resistencia al giro 
+    mua = 50. #resistencia al giro 
     mus = [mu,mua]
     #ganancias del controlador
     #control rumbo, control de la  fuerza posicion, contror error estimador
-    Ks = [50.,0.5,1] #
+    Ks = [5,0.5,1] #
     E = np.array([[0,-1],[1,0]])
-    campo = [3*np.pi/4,0*np.pi/100,1,0.5]
+    campo = [-3*np.pi/4,0*np.pi/100,1,0.5]
     tfin = 300. #2000.#tiempo final del experimento
     
     #_______integrador LSODA (stiff)___________________________________________
     USV(0,pini,p0,mus,Ks,E,campoux,campo)
-    sol = sl(USV, (0,tfin),pini,method='LSODA',args = (p0,mus,Ks,E,campoux,campo),max_step=0.05)    
+    sol = sl(USV, (0,tfin),pini,method='RK45',args = (p0,mus,Ks,E,campoux,campo),max_step=0.05)    
        
     
     #______Resultados (gráficos)_______________________________________________
@@ -144,7 +144,7 @@ for theta in thetai:
     pl.ylabel('m')
     pl.legend(['$p_1$','$p_2$'])
     pl.title('$\\theta$ =%2.0f$^o$, r=%2.1fm., v=%2.1fm/s' %(theta*180/np.pi, r, v))
-    pl.savefig('./figures/pos_th%2.0f_r%dm_v%dms.eps' %(theta*180/np.pi, r, v))
+    pl.savefig('./figures/pos_th%2.0f_r%dm_v%dms.png' %(theta*180/np.pi, r, v))
     pl.figure(2) #positions vs time
     pl.plot(sol.t,sol.y[2],'r')
     pl.plot(sol.t,sol.y[3],'k')
@@ -152,7 +152,7 @@ for theta in thetai:
     pl.ylabel('m/s')
     pl.legend(['$\dot{p_1}$','$\dot{p_2}$'])
     pl.title('$\\theta$ =%2.0f$^o$, r=%2.1fm., v=%2.1fm/s' %(theta*180/np.pi, r, v))
-    pl.savefig('./figures/vel_th%2.0f_r%dm_v%dms.eps' %(theta*180/np.pi, r, v))
+    pl.savefig('./figures/vel_th%2.0f_r%dm_v%dms.png' %(theta*180/np.pi, r, v))
     # # pl.plot(t,w,'.b')
     # pl.figure(2) #velocities vs time
     # pl.plot(sol.t,sol.y[2],'.r')pl.figure(1) #positions vs time
@@ -162,7 +162,7 @@ for theta in thetai:
     pl.ylabel('rad/s')
     pl.legend(['$\omega$'])
     pl.title('$\\theta$ =%2.0f$^o$, r=%2.1fm., v=%2.1fm/s' %(theta*180/np.pi, r, v))
-    pl.savefig('./figures/omega_th%2.0f_r%dm_v%dms.eps' %(theta*180/np.pi, r, v))
+    pl.savefig('./figures/omega_th%2.0f_r%dm_v%dms.png' %(theta*180/np.pi, r, v))
     
     
     vertices = np.array([[0, 0.25],[0,-0.25],[1,0],[0,0.25]])
@@ -203,7 +203,7 @@ for theta in thetai:
     pl.xlabel('$p_1$(m.)')
     pl.ylabel('$p_2$(m.)')
     pl.title('$\\theta$ =%2.0f$^o$, r=%2.1fm., v=%2.1fm/s' %(theta*180/np.pi, r, v))
-    pl.savefig('./figures/disp_th%2.0f_r%dm_v%dms.eps' %(theta*180/np.pi, r, v))
+    pl.savefig('./figures/disp_th%2.0f_r%dm_v%dms.png' %(theta*180/np.pi, r, v))
     
     ux = np.array([1,0])
     dotp = np.zeros(13)
@@ -228,8 +228,8 @@ for theta in thetai:
         ct = Dd.T.dot(R.dot(ux))
         ev = sly[2:4]-sly[6:8] #velocity error
         #torque to be applied
-        #Tau = k1*st*np.sign(ct)
-        Tau = k1*st/ct
+        Tau = k1*st*np.sign(ct)
+        #Tau = k1*st/ct
 
         #force to be applied
         F = R.T.dot(k2*ep)[0]-mu.dot(R.T.dot(k3*ev))[0]#
@@ -239,8 +239,8 @@ for theta in thetai:
     pl.figure(5)
     pl.plot(sol.t,Td)
     pl.plot(sol.t,Ti)
-    pl.legend(['$T_{S}$','$T_{P}']) #P port babor izquierda, S starboard
+    pl.legend(['$T_{S}$','$T_{P}$']) #P port babor izquierda, S starboard
     pl.xlabel('t(s.)')
     pl.ylabel('N.')
     pl.title('$\\theta$ =%2.0f$^o$, r=%2.1fm., v=%2.1fm/s' %(theta*180/np.pi, r, v))
-    pl.savefig('./figures/thruster_th%2.0f_r%dm_v%dms.eps' %(theta*180/np.pi, r, v))
+    pl.savefig('./figures/thruster_th%2.0f_r%dm_v%dms.png' %(theta*180/np.pi, r, v))

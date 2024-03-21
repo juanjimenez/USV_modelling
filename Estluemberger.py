@@ -48,53 +48,41 @@ def USV(t,p,p0,mus,Ks,C,E,campvw,campo):
     wt = campvw(p[0:2],t ,campo)
     R = np.reshape(p[8:12],[2,2]) #USV heading 
     ep =p0-p[0:2] #position error p0 is the desired equilibrium point to down the probe 
-    
+    epph = p[0:2] - p[4:6] #error of estimation position
     nD = np.linalg.norm(ep)
     Dd = ep/(nD+ (nD==0)) #heading towards the origin (equilibrium point)
     #
-    st= Dd.T.dot(E.dot(R.dot(ux)))
+    st= Dd.T@E@R@ux
     #
-    ct = Dd.T.dot(R.dot(ux))
+    ct = Dd.T@R@ux
     #ev = p[2:4]-p[6:8] #velocity error
     #torque to be applied
-    #Tau = kr*st*(np.sign(ct)+1*(ct==0))#la condición es para evitar el punto de eq inestable
-    Tau = kr*st/ct
-    
-    Pc =R.T.dot(p[0:2]) #posiciones a ejes cuerpo 
-    Pcdot=R.T.dot(p[2:4]) #velocidades a ejes cuerpo
-    Pchat =R.T.dot(p[4:6]) #posiciones a ejes cuerpo estimadas
-    Pcdothat =R.T.dot(p[6:8]) #velocidades a ejes cuerpo estimadas
-    
-    #estados de la planta reducida
-    Pr =np.array([Pc[0],Pcdot[0]]) #solo controlo la 
-    #estados del estimador reducido px y vx
-    Prhat =np.array([Pchat[0],Pcdothat[0]]) 
+    Tau = kr*st*(np.sign(ct))#+1*(ct==0))#la condición es para evitar el punto de eq inestable
+    #Tau = kr*st/ct
     
     
-    F = -k[0,0:2].dot(Pchat) - k[0,2]*p[13] #fuerza sacada del modelo lineal
+    
+    
+    F =  k*(R.T@ep)[0] -(R@mu@R.T@p[13:15])[0]#Solo actuamos en la dir de avance
     
     #USV displacement
     dotp[0:2] = p[2:4] 
-    dotp[2:4] = R.dot(ux*F) - R.dot(mu.dot(R.T.dot(p[2:4]- wt)))
+    dotp[2:4] = R@(ux*F) - R@(mu@(R.T@(p[2:4]- wt)))
     #dotp[2:4] = R.dot(ux*F) - R.dot(mu.dot(R.T.dot(p[2:4])))
     #USV rotation
     Td = (F + Tau)/2
     Ti = (F - Tau)/2
     Sw = E*p[12]
-    dotR = Sw.dot(R)
+    dotR = Sw@R
     dotp[8:12] = np.reshape(dotR,[1,4])
     dotp[12] = Td-Ti - mua*p[12] #desprecio cualquier par que pueda hacer la corriente
     
-    #USV estimator
+    #USV estimator y estimador de corrientes
     
-    dotpr = L.dot(C.dot(Pr))
-    dotprhat =L.dot(C.dot(Prhat))
     
-    dotp[4:6] = p[6:8] + R.dot(ux*(dotpr[0]-dotprhat[0]))  
-    dotp[6:8] = R.dot(ux*F) - R.dot(mu.dot(R.T.dot(p[6:8])))\
-    + R.dot(ux*(dotpr[1]- dotprhat[1]))
-    Pc = R.T.dot(p0-p[0:2]) #solo hacemos tracking de px en c cuerpo
-    dotp[13] =Pc[0] 
+    dotp[4:6] = p[6:8] - L[2:4,:]@epph
+    dotp[6:8] = R@(ux*F) - R@mu@R.T@(p[6:8]-p[13:15]) - L[0:2,:]@epph
+    dotp[13:15] = L[4:6,:]@epph
     
     return(dotp)
     
@@ -107,7 +95,7 @@ p[1] ->> py
 p[2] ->> vx
 p[3] ->> vy
 p[4] ->> ^px (^. Estimator variables)
-p[5] ->> ^pydotp[2:4] = R.dot(ux*F) - R.dot(mu.dot(R.T.dot(p[2:4]- wt))1
+p[5] ->> ^py
 p[6] ->> ^vx
 p[7] ->> ^vy
 p[8] ->> R[0,0] (Rotation Matrix elements)
@@ -115,7 +103,8 @@ p[9] ->> R[0,1]
 p[10] ->> R[1,0]
 p[11] ->> R[0,1]
 p[12] ->> w (angular speed)
-p[13] ->> dev error de posición
+p[13] ->> ^vwx (estimated water speed)
+p[14] ->> ^vwy (Estimated water speed)
 '''
 #thetai = np.arange(0,2*np.pi,np.pi/8) #initial USV heading
 thetai = [np.pi/3]
@@ -138,6 +127,7 @@ for theta in thetai:
     pini[11] = np.cos(theta)
     pini[12] = 0
     pini[13] = 0
+    pinni[14] = 0
     p0 = np.array([0,0]) #desired stabilization position
     
     #Costantes del modelo absolutamente arbitrarias
@@ -159,7 +149,7 @@ for theta in thetai:
     Pols = [-2,-2,-1]
     Amp = np.array([[0, 1, 0],[0, -mu[0][0], 0], [-1, 0, 0]])
     Bmp = np.array([[0],[1],[0]])
-    K = ctrl.acker(Amp,Bmp,Pols)
+    K = 10 #de momento la ganancia proporcional al error en x la metemos a capon
     #la  ganancia del control de rotación está metida a pelo
     
     Ks = [50.,K,L] #
