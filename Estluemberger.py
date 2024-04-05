@@ -108,7 +108,7 @@ p[14] ->> ^vwy (Estimated water speed)
 '''
 #thetai = np.arange(0,2*np.pi,np.pi/8) #initial USV heading
 thetai = [np.pi/3]
-pini = np.zeros(14)
+pini = np.zeros(15)
 r = 4 #distancia al origen a partir de la cual se prueba el algoritmo
 v = 0.5 #v inicial del usv, (modulo)
 #____________resolvemos para todos los angulos de thetai_______________________ 
@@ -127,7 +127,7 @@ for theta in thetai:
     pini[11] = np.cos(theta)
     pini[12] = 0
     pini[13] = 0
-    pinni[14] = 0
+    pini[14] = 0
     p0 = np.array([0,0]) #desired stabilization position
     
     #Costantes del modelo absolutamente arbitrarias
