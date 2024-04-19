@@ -25,6 +25,7 @@ def campoux(p,t,campo):
    campo[0] => theta orientación (inicial) del campo
    campo[1] => w velocidad de rotación de la dirección del campo
    campo[3] => A velocidad máxima (modulo) del campo
+   campo[4] => b offset de la dirección de maxima intensidad del campo
    
    OJO HAY QUE REVISAR ESTO.
    '''
