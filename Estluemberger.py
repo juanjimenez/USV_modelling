@@ -127,7 +127,7 @@ for theta in thetai:
     pini[11] = np.cos(theta)
     pini[12] = 0
     pini[13] = 0
-    pinni[14] = 0
+    #pini[14] = 0
     p0 = np.array([0,0]) #desired stabilization position
     
     #Costantes del modelo absolutamente arbitrarias

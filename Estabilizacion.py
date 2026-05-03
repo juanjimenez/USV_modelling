@@ -28,17 +28,17 @@ ki = 0.#01#01#control integral
 
 InD = 0. #inicialización de la integral del error
 
-tfin = 2000. #2000.#tiempo final del experimento
+tfin = 200. #2000.#tiempo final del experimento
 t = 0. #tiempo actual
 dt = 0.01 #incremento de tiempos para integración
 
-tp = tfin/150 #tiempo de pintar
+tp = tfin/100 #tiempo de pintar
 P0i = np.array([[0.],[0.]]) #posicion de equilibrio
 p = np.array([[1.],[-2.]]) #posición actual
 
 #velocidad del agua, Camarón que se duerme...
 #wt = np.array([[0.5],[-0.3]])
-campo = [2*np.pi/3,0*np.pi/100,1,0.5]
+campo = [2*np.pi/3,0*np.pi/100,1,0.5,0.0]
 wt = vel_agua.campoux(p, t, campo)
 #R = np.eye(2)
 #odio inicializar R asi pero no veo otra para tener cualquier orientación
@@ -160,7 +160,8 @@ while t <= tfin:
         pl.figure(3)
         # pl.plot(p[0][0],p[1][0],'.')
         vertrot = np.array([np.dot(R,j) for j in vertices]) +\
-        [p[0][0],p[1][0]]       
+        [p[0][0],p[1][0]]
+        print('p',p,'vertrot',vertrot)       
         pathi = Path(vertrot,codes)
         patchi = patches.PathPatch(pathi,facecolor = 'blue')
         pl.gca().add_patch(patchi)
@@ -173,7 +174,7 @@ while t <= tfin:
         # pl.figure(5)
         # pl.plot(t,Ti,'r.')
         # pl.plot(t,Td,'b.')
-        tp += tfin/200 #150
+        tp += tfin/100 #150
     
                  
     
@@ -216,7 +217,7 @@ pl.plot(ptotal[0,:],ptotal[1,:],'y')
 pl.axis([-4,4,-4,4])
 X = np.arange(-4,4,0.2)
 Y = np.arange(-4,4,0.2)
-vel_agua.pintacampoux(X,Y,campo,t)
+vel_agua.pintacampoux(X,Y,vel_agua.campoux,campo,'b',t)
 # pl.figure(4)
 # pl.legend(['x','y'])
 # pl.figure(5)

@@ -14,19 +14,22 @@ import matplotlib.pyplot as pl
 
 def campoux(p,t,campo):
    '''representa un campo uniforme en la direccion marcada por theta
-   #el campo alcanza un maximo en la recta y = tan(theta)*x +b y cae a cero segu
-   #nos alejamos de ella
-   #p coordenadas en que se calcula el valor de la velocidad de arrastre
-    el campo puede variar su orientacion con el tiempo si w no vale cero
-   # A permite ajustar el valor de la velocidad máxima
-   #como es una función gaussiana, S nos ajusta el  punto de inflexion
-   #theta da la orientacion de la velocidad
+   el campo alcanza un maximo en la recta y = tan(theta)*x +b y cae a cero segu
+   nos alejamos de ella
+   p coordenadas en que se calcula el valor de la velocidad de arrastre
+   el campo puede variar su orientacion con el tiempo si w no vale cero
+   A permite ajustar el valor de la velocidad máxima
+   como es una función gaussiana, S nos ajusta el  punto de inflexion
+   theta da la orientacion de la velocidad
    La variable campo es una lista.
    campo[0] => theta orientación (inicial) del campo
    campo[1] => w velocidad de rotación de la dirección del campo
-   campo[3] => A velocidad máxima (modulo) del campo
-   
-   OJO HAY QUE REVISAR ESTO.
+   campo[2] => A velocidad máxima (modulo) del campo
+   campo[3] => S es la desviación típica de la gaussiana que define el campo. Cuanto mayor S, más suave es el campo
+   campo[4] => b es el desplazamiento de la recta de máxima velocidad respecto al origen. 
+   Si b=0, la velocidad máxima se alcanza en la recta que pasa por el origen. 
+   Si b>0, la recta de máxima velocidad se desplaza hacia arriba, 
+   y si b<0, se desplaza hacia abajo.
    '''
    theta = campo[0]
    w = campo[1]
@@ -35,10 +38,7 @@ def campoux(p,t,campo):
    b = campo[4]
    #desrrotamos el punto. Solo necesito desrrotar la y
    pr = -p[0]*np.sin(theta+w*t) + p[1]*np.cos(theta+w*t)
-   
-   
-   
-   
+ 
    #el campo en el punto lo ligamos a     
    v=A*np.exp(-S*(pr+b)**2)
 
