@@ -45,7 +45,7 @@ def campoux(p,t,campo):
    wr = np.array([v*np.cos(theta+w*t),v*np.sin(theta+w*t)])
    return wr
    
-def pintacampoux(X,Y,campoux,campo,col,t=0):
+def pintacampoux(X,Y,campoux,campo,col='b',t=0):
     '''para pintar el campo con flechillas 
     X e Y son dos vectores de puntos sobre los que hacer un grid de puntos en 
     los que calcular y pintar las flechillas del campo.
