@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Sep 13 11:13:03 2023
-
+Este archivo no está completo y no hace nada que valga la pena.
+LO dejo como está para futuras aplicaciones.
 @author: juanjimenez
 """
 import Bezier as Bz
@@ -114,7 +115,7 @@ tp = tfin/150 #tiempo de pintar
 #velocidad del agua si hay corrientes
 #velocidad del agua, Camarón que se duerme...
 #wt = np.array([[0.5],[-0.3]])
-campo = [2*np.pi/3,0*np.pi/100,1,0.5] #campo de velocidades
+campo = [2*np.pi/3,0*np.pi/100,1,0.5,0] #campo de velocidades
 wt = vel_agua.campoux(pusv, t, campo) #velocidad del agua en la posición del barco
 
 while t <= tfin:
@@ -170,4 +171,4 @@ while t <= tfin:
     #calcula la velocidad del agua par la proxima iteracion
     wt = vel_agua.campoux(pusv, t, campo)
   
-vel_agua.pintacampoux(x,y,campo,t)
+vel_agua.pintacampoux(x,y,vel_agua.campoux,campo,'b',t)
