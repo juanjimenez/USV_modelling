@@ -164,7 +164,7 @@ for theta in thetai:
     pl.close('all')
     pl.figure(1) #positions vs time
     pl.plot(sol.t,sol.y[2],'r')
-    pl.plot(sol.t,sol.y[3],'k')comoeig
+    pl.plot(sol.t,sol.y[3],'k')
     pl.plot(sol.t,sol.y[6],'g')
     pl.plot(sol.t,sol.y[7],'b')
     
