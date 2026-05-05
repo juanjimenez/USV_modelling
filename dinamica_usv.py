@@ -114,8 +114,8 @@ for theta in thetai:
     mus = [mu,mua]
     #_______Campo de velocidades del agua _____________________________________
     E = np.array([[0,-1],[1,0]]) 
-    campo = [np.pi/3,0,1,0.5,0] 
-    tfin = 20. #2000.#tiempo final del experimento
+    campo = [np.pi/3,0,0,0.5,0] 
+    tfin = 200. #2000.#tiempo final del experimento
     
     #_______integrador LSODA (stiff)___________________________________________
     USV(0,pini,E,mus,campoux,campo)
@@ -156,9 +156,12 @@ for theta in thetai:
     pl.plot(sol.y[0],sol.y[1]) #drawing the trajetory
     
     #drawing the water speed field
-    X = np.arange(-5,5,0.2)
-    Y = np.arange(-5,5,0.2)
-    vel_agua.pintacampoux(X,Y,campoux,campo,'g',tfin)
+    if campo[2] > 0.:
+        print(campo[3] )
+        X = np.arange(-5,5,0.2)
+        Y = np.arange(-5,5,0.2)
+        vel_agua.pintacampoux(X,Y,campoux,campo,'g',tfin)
+
     L = sol.t.shape[0]
     
     #drawing the ship atitude
@@ -188,7 +191,7 @@ for theta in thetai:
     pl.ylabel('$p_2$(m.)')
     pl.title('$\\theta$ =%2.0f$^o$, r=%2.1fm., v=%2.1fm/s' %(theta*180/np.pi, r, v))
     #pl.savefig('./figures/disp_th%2.0f_r%dm_v%dms.png' %(theta*180/np.pi, r, v))
-    
+        
     # pl.figure(5)
     # pl.plot(sol.t,Td)
     # pl.plot(sol.t,Ti)
@@ -197,3 +200,4 @@ for theta in thetai:
     # pl.ylabel('N.')
     # pl.title('$\\theta$ =%2.0f$^o$, r=%2.1fm., v=%2.1fm/s' %(theta*180/np.pi, r, v))
     # pl.savefig('./figures/thruster_th%2.0f_r%dm_v%dms.png' %(theta*180/np.pi, r, v))
+    
