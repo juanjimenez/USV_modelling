@@ -37,7 +37,7 @@ def USV(t,p,p0,mus,Ks,C,E,campvw,campo):
     campo := needed by vel_agua Model the water speed distribution
     T :truster initial values
     """
-
+    eps= np.finfo(np.float64).eps
     ux = np.array([1,0])
     dotp = np.zeros(p.shape)
     mu = mus[0]
@@ -50,12 +50,12 @@ def USV(t,p,p0,mus,Ks,C,E,campvw,campo):
     ep =p0-p[2:4] #position error p0 is the desired equilibrium point to down the probe 
     epph = p[2:4] - p[6:8] #error of estimation position
     nD = np.linalg.norm(ep)
-    Dd = ep/(nD+ (nD==0)) #heading towards the origin (equilibrium point)
+    Dd = ep/(nD+ (nD<=eps)) #heading towards the origin (equilibrium point)
     #
     st= Dd.T@E@R@ux
     #
     ct = Dd.T@R@ux
-    #ev = p[2:4]-p[6:8] #velocity error
+    
     #torque to be applied
     Tau = kr*st*(np.sign(ct))#+1*(ct==0))#la condición es para evitar el punto de eq inestable
     #Tau = kr*st/ct
@@ -104,13 +104,14 @@ p[12] ->> w (angular speed)
 p[13] ->> ^vwx (estimated water speed)
 p[14] ->> ^vwy (Estimated water speed)
 '''
-#thetai = np.arange(0,-2*np.pi,-np.pi/8) #initial USV heading
-thetai = [np.pi/6]
+thetai = np.arange(0,-2*np.pi,-np.pi/8) #initial USV heading
+#thetai = [np.pi/6]
 pini = np.zeros(15)
 r = 4 #distancia al origen a partir de la cual se prueba el algoritmo
 v = 0.5 #v inicial del usv, (modulo)
 #____________resolvemos para todos los angulos de thetai_______________________ 
 for theta in thetai:
+    print(theta*180/np.pi)
     pini[0] = v*np.cos(theta)
     pini[1] = v*np.sin(theta)
     pini[2] = r*np.cos(theta)
@@ -131,7 +132,7 @@ for theta in thetai:
     #Costantes del modelo absolutamente arbitrarias
     #matriz de rozamientos en ejes cuerpo. Incluyen todo Inercias, masas ..
     mu = np.array([[10.,0.],[0.,100.]])
-    mua = 10. #resistencia al giro 
+    mua = 100. #resistencia al giro 
     mus = [mu,mua]
     
     #_______calculo ganancias del controlador__________________________________
@@ -144,11 +145,11 @@ for theta in thetai:
     C = np.array([[0,0,1,0,0,0],[0,0,0,1,0,0]])
     # Posicionamos los polos, un tanto a capón
     p = [-2,-2,-3,-3,-6,-6]
-    
+    #p = [-0.2,-0.2,-0.3,-0.3,-0.6,-0.6]
     L = ctrl.place(A.T,C.T,p).T
-    K = 10 #de momento la ganancia proporcional al error en x la metemos a capon
+    K = 50 #de momento la ganancia proporcional al error en x la metemos a capon
     #la  ganancia del control de rotación está metida a pelo
-    Ks = [100.,K,L] #
+    Ks = [50.,K,L] #
     E = np.array([[0,-1],[1,0]])
     #campo = [3*np.pi/4,0*np.pi/100,1,0.5]
     campo = [np.pi/3,0*np.pi/100,1,0.5,0]
@@ -163,7 +164,7 @@ for theta in thetai:
     pl.close('all')
     pl.figure(1) #positions vs time
     pl.plot(sol.t,sol.y[2],'r')
-    pl.plot(sol.t,sol.y[3],'k')
+    pl.plot(sol.t,sol.y[3],'k')comoeig
     pl.plot(sol.t,sol.y[6],'g')
     pl.plot(sol.t,sol.y[7],'b')
     
